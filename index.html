@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traductor Español → Alemán</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e0e0e0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 95%;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #a0b4d0;
+            margin-bottom: 28px;
+        }
+
+        .flags {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #c0d0e0;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 90px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #f0f0f0;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+
+        .examples {
+            margin: 16px 0 24px;
+        }
+
+        .examples span {
+            font-size: 0.85rem;
+            color: #8899aa;
+            margin-right: 8px;
+        }
+
+        .example-btn {
+            background: rgba(74, 158, 255, 0.15);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            color: #7bb8ff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin: 4px 4px 4px 0;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: rgba(74, 158, 255, 0.3);
+            color: #fff;
+        }
+
+        .btn-traducir {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4a9eff, #2d6abf);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.15s, box-shadow 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-traducir:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(74, 158, 255, 0.35);
+        }
+
+        .btn-traducir:active {
+            transform: translateY(0);
+        }
+
+        .btn-traducir:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .resultado-box {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 18px;
+            min-height: 60px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #d0e8ff;
+            white-space: pre-wrap;
+        }
+
+        .resultado-box.vacio {
+            color: #667788;
+            font-style: italic;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modelo-info {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.8rem;
+            color: #556677;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="flags">🇪🇸 → 🇩🇪</div>
+        <h1>Traductor Español - Alemán</h1>
+        <p class="subtitle">Powered by Qwen2-0.5B</p>
+
+        <label for="texto-entrada">Texto en español:</label>
+        <textarea id="texto-entrada" placeholder="Escribe aquí el texto en español..."></textarea>
+
+        <div class="examples">
+            <span>Ejemplos:</span>
+            <button class="example-btn" onclick="setExample('Me gusta el fútbol')">Me gusta el fútbol</button>
+            <button class="example-btn" onclick="setExample('¿Cómo estás?')">¿Cómo estás?</button>
+            <button class="example-btn" onclick="setExample('¿Qué hora es?')">¿Qué hora es?</button>
+        </div>
+
+        <button class="btn-traducir" id="btn-traducir" onclick="traducir()">Traducir</button>
+
+        <label>Traducción en alemán:</label>
+        <div class="resultado-box vacio" id="resultado">La traducción aparecerá aquí...</div>
+
+        <p class="modelo-info">Modelo: Qwen2-0.5B-Instruct | transformers + Flask</p>
+    </div>
+
+    <script>
+        function setExample(texto) {
+            document.getElementById('texto-entrada').value = texto;
+        }
+
+        async function traducir() {
+            const texto = document.getElementById('texto-entrada').value.trim();
+            const resultado = document.getElementById('resultado');
+            const btn = document.getElementById('btn-traducir');
+
+            if (!texto) {
+                resultado.textContent = 'Por favor, escribe algo para traducir.';
+                resultado.classList.add('vacio');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Traduciendo...';
+            resultado.textContent = 'Procesando...';
+            resultado.classList.add('vacio');
+
+            try {
+                const response = await fetch('/traducir', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto: texto })
+                });
+
+                const data = await response.json();
+                resultado.textContent = data.traduccion || 'Sin resultado';
+                resultado.classList.remove('vacio');
+            } catch (error) {
+                resultado.textContent = 'Error al conectar con el servidor. ¿Está corriendo app.py?';
+                resultado.classList.add('vacio');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Traducir';
+            }
+        }
+
+        document.getElementById('texto-entrada').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                traducir();
+            }
+        });
+    </script>
+</body>
+</html>
