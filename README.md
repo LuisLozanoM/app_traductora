@@ -4,6 +4,8 @@ Aplicación web que traduce texto del español al alemán utilizando el modelo d
 
 **Demo en vivo:** [https://luislozanom.github.io/app_traductora/](https://luislozanom.github.io/app_traductora/)
 
+![Screenshot de la aplicación](screenshot.png)
+
 ## Uso online
 
 Simplemente abre el enlace de arriba en tu navegador. La primera vez se descarga el modelo (~300 MB) y después queda en caché.
