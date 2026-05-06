@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traductor Español → Alemán</title>
+    <title>Traductor Español - Aleman</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -170,38 +170,140 @@
             font-size: 0.8rem;
             color: #556677;
         }
+
+        /* Loading overlay */
+        .loading-overlay {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .loading-overlay h2 {
+            color: #fff;
+            margin-bottom: 16px;
+            font-size: 1.3rem;
+        }
+
+        .loading-overlay p {
+            color: #a0b4d0;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a9eff, #7bb8ff);
+            border-radius: 4px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .loading-note {
+            font-size: 0.8rem;
+            color: #556677;
+            margin-top: 8px;
+        }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="flags">🇪🇸 → 🇩🇪</div>
-        <h1>Traductor Español - Alemán</h1>
-        <p class="subtitle">Powered by Qwen2-0.5B</p>
 
-        <label for="texto-entrada">Texto en español:</label>
-        <textarea id="texto-entrada" placeholder="Escribe aquí el texto en español..."></textarea>
-
-        <div class="examples">
-            <span>Ejemplos:</span>
-            <button class="example-btn" onclick="setExample('Me gusta el fútbol')">Me gusta el fútbol</button>
-            <button class="example-btn" onclick="setExample('¿Cómo estás?')">¿Cómo estás?</button>
-            <button class="example-btn" onclick="setExample('¿Qué hora es?')">¿Qué hora es?</button>
+        <!-- Pantalla de carga del modelo -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="flags">🇪🇸 → 🇩🇪</div>
+            <h2>Cargando modelo Qwen2-0.5B...</h2>
+            <p id="loading-status">Iniciando descarga del modelo...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p class="loading-note">La primera carga descarga el modelo (~300 MB). Despues se usa desde cache.</p>
         </div>
 
-        <button class="btn-traducir" id="btn-traducir" onclick="traducir()">Traducir</button>
+        <!-- Interfaz principal (oculta hasta que cargue el modelo) -->
+        <div id="main-ui" class="hidden">
+            <div class="flags">🇪🇸 → 🇩🇪</div>
+            <h1>Traductor Espanol - Aleman</h1>
+            <p class="subtitle">Powered by Qwen2-0.5B (ejecutandose en tu navegador)</p>
 
-        <label>Traducción en alemán:</label>
-        <div class="resultado-box vacio" id="resultado">La traducción aparecerá aquí...</div>
+            <label for="texto-entrada">Texto en espanol:</label>
+            <textarea id="texto-entrada" placeholder="Escribe aqui el texto en espanol..."></textarea>
 
-        <p class="modelo-info">Modelo: Qwen2-0.5B-Instruct | transformers + Flask</p>
+            <div class="examples">
+                <span>Ejemplos:</span>
+                <button class="example-btn" onclick="setExample('Me gusta el futbol')">Me gusta el futbol</button>
+                <button class="example-btn" onclick="setExample('Como estas?')">Como estas?</button>
+                <button class="example-btn" onclick="setExample('Que hora es?')">Que hora es?</button>
+            </div>
+
+            <button class="btn-traducir" id="btn-traducir" onclick="traducir()">Traducir</button>
+
+            <label>Traduccion en aleman:</label>
+            <div class="resultado-box vacio" id="resultado">La traduccion aparecera aqui...</div>
+
+            <p class="modelo-info">Modelo: Qwen2-0.5B-Instruct | Transformers.js (100% en el navegador)</p>
+        </div>
     </div>
 
-    <script>
-        function setExample(texto) {
-            document.getElementById('texto-entrada').value = texto;
+    <script type="module">
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
+
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const mainUI = document.getElementById('main-ui');
+        const loadingStatus = document.getElementById('loading-status');
+        const progressFill = document.getElementById('progress-fill');
+
+        let generator = null;
+
+        // Cargar el modelo al iniciar la pagina
+        try {
+            loadingStatus.textContent = 'Descargando e inicializando modelo...';
+
+            generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
+                dtype: 'q4',
+                progress_callback: (progress) => {
+                    if (progress.status === 'progress' && progress.total) {
+                        const pct = Math.round((progress.loaded / progress.total) * 100);
+                        progressFill.style.width = pct + '%';
+                        const mb = (progress.loaded / 1024 / 1024).toFixed(1);
+                        const totalMb = (progress.total / 1024 / 1024).toFixed(1);
+                        loadingStatus.textContent = `Descargando: ${mb} MB / ${totalMb} MB (${pct}%)`;
+                    } else if (progress.status === 'ready') {
+                        loadingStatus.textContent = 'Modelo listo.';
+                        progressFill.style.width = '100%';
+                    }
+                }
+            });
+
+            // Modelo cargado: mostrar interfaz
+            loadingOverlay.classList.add('hidden');
+            mainUI.classList.remove('hidden');
+
+        } catch (error) {
+            loadingStatus.textContent = 'Error al cargar el modelo: ' + error.message;
+            progressFill.style.background = '#ff4a4a';
+            progressFill.style.width = '100%';
+            console.error(error);
         }
 
-        async function traducir() {
+        // Funcion para poner ejemplos
+        window.setExample = function(texto) {
+            document.getElementById('texto-entrada').value = texto;
+        };
+
+        // Funcion principal de traduccion
+        window.traducir = async function() {
+            if (!generator) return;
+
             const texto = document.getElementById('texto-entrada').value.trim();
             const resultado = document.getElementById('resultado');
             const btn = document.getElementById('btn-traducir');
@@ -218,28 +320,40 @@
             resultado.classList.add('vacio');
 
             try {
-                const response = await fetch('/traducir', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ texto: texto })
+                const messages = [
+                    {
+                        role: 'system',
+                        content: 'You are a professional Spanish-to-German translator. Translate the user\'s Spanish text into German. Reply ONLY with the German translation. No explanations, no extra text.\n\nExamples:\nSpanish: Buenos dias -> German: Guten Morgen\nSpanish: Gracias -> German: Danke\nSpanish: Donde esta la biblioteca? -> German: Wo ist die Bibliothek?'
+                    },
+                    { role: 'user', content: texto }
+                ];
+
+                const output = await generator(messages, {
+                    max_new_tokens: 128,
+                    temperature: 0.3,
+                    do_sample: true,
+                    top_p: 0.9,
+                    repetition_penalty: 1.2
                 });
 
-                const data = await response.json();
-                resultado.textContent = data.traduccion || 'Sin resultado';
+                const respuesta = output[0].generated_text.at(-1).content.trim();
+                resultado.textContent = respuesta || 'Sin resultado';
                 resultado.classList.remove('vacio');
             } catch (error) {
-                resultado.textContent = 'Error al conectar con el servidor. ¿Está corriendo app.py?';
+                resultado.textContent = 'Error al traducir: ' + error.message;
                 resultado.classList.add('vacio');
+                console.error(error);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Traducir';
             }
-        }
+        };
 
+        // Enter para traducir
         document.getElementById('texto-entrada').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                traducir();
+                window.traducir();
             }
         });
     </script>
