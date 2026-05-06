@@ -1,39 +1,25 @@
 # Traductor Español - Alemán
 
-Aplicación web que traduce texto del español al alemán utilizando el modelo de lenguaje **Qwen2-0.5B-Instruct** de Alibaba Cloud. El backend carga el modelo localmente con la librería `transformers` de Hugging Face y lo expone a través de un servidor Flask, mientras que el frontend es una interfaz HTML interactiva.
+Aplicación web que traduce texto del español al alemán utilizando el modelo de lenguaje **Qwen2-0.5B-Instruct** de Alibaba Cloud. El modelo corre directamente en el navegador gracias a **Transformers.js**, sin necesidad de backend ni servidor.
 
-## Requisitos
+**Demo en vivo:** [https://luislozanom.github.io/app_traductora/](https://luislozanom.github.io/app_traductora/)
 
-- Python 3.10+
-- pip
+## Uso online
 
-### Dependencias
+Simplemente abre el enlace de arriba en tu navegador. La primera vez se descarga el modelo (~300 MB) y después queda en caché.
 
-```
-flask
-transformers
-torch
-```
+## Uso local (alternativa con Python)
 
-## Instalación
+También se incluye `app.py` para correr el modelo localmente con Flask:
 
 ```bash
 git clone https://github.com/LuisLozanoM/app_traductora.git
 cd app_traductora
 pip install flask transformers torch
-```
-
-## Uso
-
-1. Ejecutar el servidor:
-
-```bash
 python app.py
 ```
 
-2. Abrir en el navegador: **http://localhost:5000**
-
-3. Escribir cualquier texto en español en el campo de entrada y presionar **Traducir** (o Enter).
+Abrir en el navegador: **http://localhost:5000**
 
 ## Ejemplos incluidos
 
@@ -49,17 +35,17 @@ La interfaz incluye botones de acceso rápido con tres frases de prueba:
 
 ```
 app_traductora/
-├── app.py        # Backend Flask + carga del modelo Qwen2-0.5B-Instruct
-├── index.html    # Frontend con la interfaz de traducción
+├── app.py        # Backend Flask (alternativa local con Python)
+├── index.html    # Frontend con Transformers.js (funciona en GitHub Pages)
 └── README.md
 ```
 
 ## Modelo
 
-Se utiliza [Qwen2-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2-0.5B-Instruct), un modelo de lenguaje de 0.5 mil millones de parámetros optimizado para seguir instrucciones. La primera ejecución descarga el modelo automáticamente desde Hugging Face (~1 GB).
+Se utiliza [Qwen2.5-0.5B-Instruct](https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct), un modelo de lenguaje de 0.5 mil millones de parámetros optimizado para seguir instrucciones, en formato ONNX cuantizado (q4) para ejecución en el navegador.
 
 ## Tecnologías
 
-- **Backend:** Python, Flask, Hugging Face Transformers, PyTorch
 - **Frontend:** HTML, CSS, JavaScript (vanilla)
-- **Modelo:** Qwen2-0.5B-Instruct
+- **Modelo en navegador:** Transformers.js, ONNX Runtime Web
+- **Backend local (opcional):** Python, Flask, Hugging Face Transformers, PyTorch
